@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add New Note</title>
+  <link rel="shortcut icon" href="/imgs/note-icon.png" type="image/x-icon">
+  <link rel="stylesheet" href="/Style/style.css">
+  <link rel="stylesheet" href="/Style/add.css">
+
+  <script defer type="module" src="../Scripts/SharedData.js"></script>
+  <script defer type="module" src="../Scripts/add.js"></script>
+</head>
+<body>
+  <div class="login-box">
+  <h2>Add New Note</h2>
+  <form>
+    <div class="user-box">
+      <input type="text" name="title" required id="title">
+      <label>Title</label>
+    </div>
+    <div class="user-box">
+<textarea name="description" id="description" placeholder="Description" required></textarea>    
+    </div>
+<div >
+    <button type="submit" class="btn create">Create</button>
+</div>
+  </form>
+</div>
+</body>
+</html>
