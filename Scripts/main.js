@@ -17,6 +17,7 @@ const getAllNotes = async () => {
 };
 
 const extractTitleDescription = (note) => ({
+  id:note.id,
   title: note.title,
   description: note.description
 });
@@ -29,18 +30,36 @@ const displayAllNotes = (notes) => {
 
   let allNotesHTML = '';
   for (const note of notes) {
-    const { title, description } = extractTitleDescription(note);
+    const { id,title, description } = extractTitleDescription(note);
     allNotesHTML += `
-      <div class="note">
-        <h2 class="title">${title}</h2>
+      <div class="note" data-id="${id}">
+        <h3 class="title">${title}</h3>
         <p class="description">${description}</p>
+
+          <div class="actions">
+          <a href="./Pages/edit.html?id=${id}" class="btn edit" ><i class="icon-pencil"></i></a>
+          <button class="btn delete" data-id="${id}"><i class="icon-trash"></i></button>
+        </div>
       </div>
     `;
   }
   notesContainer.innerHTML = allNotesHTML;
 };
 
+
+
+
+
 document.addEventListener("DOMContentLoaded", async () => {
   const notes = await getAllNotes();
   displayAllNotes(notes);
+
+  // Use event delegation for dynamically added edit buttons
 });
+
+/*
+=============================
+  Edit 
+=============================
+*/ 
+
