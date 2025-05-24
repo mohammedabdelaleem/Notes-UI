@@ -2,75 +2,69 @@ import { BASE_URL } from './SharedData.js';
 
 /*
 ===================================
-  Prepare DOM elements
-===================================*/
-
+  Prepare and Validate DOM Elements
+===================================
+*/
 const titleInput = document.getElementById("title");
 const descriptionInput = document.getElementById("description");
-const btnCreate = document.getElementsByClassName("create")[0];
-
-/*
-==============================================
- Ensure DOM elements exist before continuing
- click event ==> send data
-===============================================*/
+const btnCreate = document.querySelector(".create");
 
 if (!titleInput || !descriptionInput || !btnCreate) {
-  console.error("One or more form elements are missing. Ensure the HTML contains elements with IDs 'title', 'description' and a class 'create'.");
-      alert("One or more form elements are missing. Ensure the HTML contains elements with IDs 'title', 'description' and a class 'create'.");
-
-} else {
-
-  btnCreate.addEventListener("click", () => {
-    const newObj = {
-      title: titleInput.value.trim(),
-      description: descriptionInput.value.trim(),
-    };
-
-
-    if (!newObj.title || !newObj.description) {
-      alert("Both title and description are required.");
-      return;
-    }
-
-    addNewObj(newObj);
-  });
+  console.error("Missing DOM elements. Ensure IDs 'title', 'description' and a class 'create' exist.");
+  alert("Form elements are missing from the page.");
+  throw new Error("Critical error: Required form elements are missing.");
 }
 
 /*
-==============================================
- Send Post Request
-===============================================*/
-
+===================================
+  Post Data to Server
+===================================
+*/
 const addNewObj = async (newObj) => {
   try {
     const response = await fetch(BASE_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newObj),
     });
 
-    // Check if the response is OK (status in the range 200–299)
     if (!response.ok) {
-      throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      alert(`Server error: ${response.status} - ${errorText}`);
+      return;
     }
 
     const data = await response.json();
-    console.log("Object Created Successfully:", data);
+    alert("Object created successfully!");
 
+    // Clear inputs
     titleInput.value = "";
     descriptionInput.value = "";
 
-    window.location.href = "index.html";
+    // Redirect after short delay for UX
+    setTimeout(() => {
+      window.location.href = "../index.html";
+    }, 500);
 
   } catch (error) {
-    // Restore input values for user convenience
-    titleInput.value = newObj.title;
-    descriptionInput.value = newObj.description;
-
     console.error("Error creating object:", error);
     alert("Failed to create object. Please try again.");
   }
 };
+
+/*
+===================================
+  Event Listener
+===================================
+*/
+btnCreate.addEventListener("click", () => {
+  const title = titleInput.value.trim();
+  const description = descriptionInput.value.trim();
+
+  if (!title || !description) {
+    alert("Both title and description are required.");
+    return;
+  }
+
+  addNewObj({ title, description });
+});
