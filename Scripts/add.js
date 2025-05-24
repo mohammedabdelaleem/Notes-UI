@@ -63,7 +63,7 @@ const addNewObj = async (newObj) => {
     titleInput.value = "";
     descriptionInput.value = "";
 
-    window.location.href = "../index.html";
+    window.location.href = "index.html";
 
   } catch (error) {
     // Restore input values for user convenience
