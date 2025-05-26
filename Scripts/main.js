@@ -2,6 +2,7 @@ import { BASE_URL } from './SharedData.js';
 
 const notesContainer = document.querySelector(".notes");
 
+// Fetch all notes from the API
 const getAllNotes = async () => {
   try {
     const response = await fetch(`${BASE_URL}/all`);
@@ -16,12 +17,37 @@ const getAllNotes = async () => {
   }
 };
 
+// Extract required fields from a note
 const extractTitleDescription = (note) => ({
   id: note.id,
   title: note.title,
   description: note.description
 });
 
+// Create HTML structure for a single note
+const createNoteHTML = (id, title, description, counter) => `
+  <div class="note" data-id="${id}">
+    <div class="note-header">
+      <p class="counter">${counter}</p>
+      <div class="stars">
+        <i class="icon-star star1"></i>
+        <i class="icon-star star2"></i>
+        <i class="icon-star star3"></i>
+        <i class="icon-star star4"></i>
+      </div>
+    </div>
+    <h3 class="title">${title}</h3>
+    <p class="description">${description}</p>
+    <div class="actions">
+      <a href="./Pages/edit.html?id=${id}" class="btn edit"><i class="icon-pencil"></i></a>
+      <button class="btn" data-id="${id}"><i class="icon-box-remove"></i></button>
+          <button class="btn" data-id="${id}"><i class="icon-heart-o"></i></button>
+      <button class="btn delete" data-id="${id}"><i class="icon-trash"></i></button>
+    </div>
+  </div>
+`;
+
+// Display all notes in the container
 const displayAllNotes = (notes) => {
   if (!Array.isArray(notes) || notes.length === 0) {
     notesContainer.innerHTML = "<p>No notes available.</p>";
@@ -29,26 +55,21 @@ const displayAllNotes = (notes) => {
   }
 
   let allNotesHTML = '';
+  let counter = 1;
+
   for (const note of notes) {
     const { id, title, description } = extractTitleDescription(note);
-    allNotesHTML += `
-      <div class="note" data-id="${id}">
-        <h3 class="title">${title}</h3>
-        <p class="description">${description}</p>
-        <div class="actions">
-          <a href="./Pages/edit.html?id=${id}" class="btn edit"><i class="icon-pencil"></i></a>
-          <button class="btn delete" data-id="${id}"><i class="icon-trash"></i></button>
-        </div>
-      </div>
-    `;
+    allNotesHTML += createNoteHTML(id, title, description, counter++);
   }
+
   notesContainer.innerHTML = allNotesHTML;
 };
 
-const DeleteeNote = async (noteId) => {
+// Delete a note by ID
+const deleteNote = async (noteId) => {
   try {
     const response = await fetch(`${BASE_URL}/${noteId}`, {
-      method: "DELETE",  // uppercase recommended
+      method: "DELETE",
     });
 
     if (response.ok) {
@@ -66,11 +87,12 @@ const DeleteeNote = async (noteId) => {
   }
 };
 
+// Initialize notes on page load
 document.addEventListener("DOMContentLoaded", async () => {
   const notes = await getAllNotes();
   displayAllNotes(notes);
 
-  // Event delegation for dynamically created delete buttons
+  // Event delegation for delete buttons
   notesContainer.addEventListener("click", async (eo) => {
     const deleteBtn = eo.target.closest(".delete");
     if (deleteBtn) {
@@ -82,9 +104,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const confirmed = confirm("Are you sure you want to delete this note?");
       if (!confirmed) return;
 
-      const success = await DeleteeNote(noteId);
+      const success = await deleteNote(noteId);
       if (success) {
-        // Refresh list after deletion
         const updatedNotes = await getAllNotes();
         displayAllNotes(updatedNotes);
       }
