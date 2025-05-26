@@ -18,14 +18,17 @@ const getAllNotes = async () => {
 };
 
 // Extract required fields from a note
-const extractTitleDescription = (note) => ({
+const extractNoteInfo = (note) => ({
   id: note.id,
   title: note.title,
-  description: note.description
+  description: note.description,
+  isArchieved: note.isArchieved,
+  isFavourite: note.isFavourite,
+  isVisible: note.isVisible
 });
 
 // Create HTML structure for a single note
-const createNoteHTML = (id, title, description, counter) => `
+const createNoteHTML = (id, title, description, counter, favHeart) => `
   <div class="note" data-id="${id}">
     <div class="note-header">
       <p class="counter">${counter}</p>
@@ -40,8 +43,10 @@ const createNoteHTML = (id, title, description, counter) => `
     <p class="description">${description}</p>
     <div class="actions">
       <a href="./Pages/edit.html?id=${id}" class="btn edit"><i class="icon-pencil"></i></a>
-      <button class="btn" data-id="${id}"><i class="icon-box-remove"></i></button>
-          <button class="btn" data-id="${id}"><i class="icon-heart-o"></i></button>
+      <button class="btn btn-archive" data-id="${id}"><i class="icon-box-remove"></i></button>
+      <button class="btn btn-heart" data-id="${id}">
+        ${favHeart}
+      </button>
       <button class="btn delete" data-id="${id}"><i class="icon-trash"></i></button>
     </div>
   </div>
@@ -58,8 +63,16 @@ const displayAllNotes = (notes) => {
   let counter = 1;
 
   for (const note of notes) {
-    const { id, title, description } = extractTitleDescription(note);
-    allNotesHTML += createNoteHTML(id, title, description, counter++);
+    const { id, title, description, isVisible, isFavourite, isArchieved } = extractNoteInfo(note);
+    let favHeart = "";
+
+    if (isVisible && !isArchieved) {
+      favHeart = isFavourite
+        ? `<i class="icon-heart-o empty-heart none"></i><i class="icon-heart full-heart favourite"></i>`
+        : `<i class="icon-heart-o empty-heart"></i><i class="icon-heart full-heart none favourite"></i>`;
+
+      allNotesHTML += createNoteHTML(id, title, description, counter++, favHeart);
+    }
   }
 
   notesContainer.innerHTML = allNotesHTML;
@@ -76,13 +89,77 @@ const deleteNote = async (noteId) => {
       console.log(`Note with ID ${noteId} deleted successfully`);
       return true;
     } else {
-      console.error("Failed to delete note");
       alert("Failed to delete the note.");
       return false;
     }
   } catch (error) {
-    console.error("Error deleting note:", error);
     alert("An error occurred while deleting the note.");
+    return false;
+  }
+};
+
+// Toggle favorite status
+const toggleFavorite = async (noteId, isFavorite) => {
+  const patchData = [
+    {
+      op: "replace",
+      path: "/IsFavourite",
+      value: isFavorite
+    }
+  ];
+
+  try {
+    const response = await fetch(`${BASE_URL}/${noteId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json-patch+json"
+      },
+      body: JSON.stringify(patchData)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Patch failed");
+    }
+
+    const result = await response.json();
+    console.log("Favorite updated:", result);
+    return true;
+  } catch (error) {
+    console.error("Error toggling favorite:", error.message);
+    return false;
+  }
+};
+
+// Toggle archive status
+const toggleArchive = async (noteId, isArchived) => {
+  const patchData = [
+    {
+      op: "replace",
+      path: "/IsArchieved", // Ensure this matches C# property
+      value: isArchived
+    }
+  ];
+
+  try {
+    const response = await fetch(`${BASE_URL}/${noteId}/archive`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json-patch+json"
+      },
+      body: JSON.stringify(patchData)
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Patch failed");
+    }
+
+    const result = await response.json();
+    console.log("Archive updated:", result);
+    return true;
+  } catch (error) {
+    console.error("Error toggling archive:", error.message);
     return false;
   }
 };
@@ -91,24 +168,55 @@ const deleteNote = async (noteId) => {
 document.addEventListener("DOMContentLoaded", async () => {
   const notes = await getAllNotes();
   displayAllNotes(notes);
+});
 
-  // Event delegation for delete buttons
-  notesContainer.addEventListener("click", async (eo) => {
-    const deleteBtn = eo.target.closest(".delete");
-    if (deleteBtn) {
-      eo.preventDefault();
+// Handle all user actions (event delegation)
+notesContainer.addEventListener("click", async (eo) => {
+  const deleteBtn = eo.target.closest(".delete");
+  const heartBtn = eo.target.closest(".btn-heart");
+  const archiveBtn = eo.target.closest(".btn-archive");
 
-      const noteId = deleteBtn.dataset.id;
-      if (!noteId) return;
+  // Handle Delete
+  if (deleteBtn) {
+    eo.preventDefault();
+    const noteId = deleteBtn.dataset.id;
+    if (!noteId) return;
 
-      const confirmed = confirm("Are you sure you want to delete this note?");
-      if (!confirmed) return;
+    const confirmed = confirm("Are you sure you want to delete this note?");
+    if (!confirmed) return;
 
-      const success = await deleteNote(noteId);
-      if (success) {
-        const updatedNotes = await getAllNotes();
-        displayAllNotes(updatedNotes);
-      }
+    const success = await deleteNote(noteId);
+    if (success) {
+      const updatedNotes = await getAllNotes();
+      displayAllNotes(updatedNotes);
     }
-  });
+  }
+
+  // Handle Favorite Toggle
+  if (heartBtn) {
+    eo.preventDefault();
+    const noteId = heartBtn.dataset.id;
+    const emptyHeart = heartBtn.querySelector(".empty-heart");
+    const fullHeart = heartBtn.querySelector(".full-heart");
+
+    const isNowFavourite = emptyHeart.classList.contains("none");
+
+    // Toggle icons visually
+    emptyHeart.classList.toggle("none");
+    fullHeart.classList.toggle("none");
+
+    await toggleFavorite(noteId, !isNowFavourite);
+  }
+
+  // Handle Archive Toggle
+  if (archiveBtn) {
+    eo.preventDefault();
+    const noteId = archiveBtn.dataset.id;
+
+    const success = await toggleArchive(noteId, true);
+    if (success) {
+      const updatedNotes = await getAllNotes();
+      displayAllNotes(updatedNotes);
+    }
+  }
 });

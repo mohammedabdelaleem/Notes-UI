@@ -167,3 +167,19 @@ body {
   justify-content: space-between;
   margin-top: 15px;
 }
+
+.none {
+  display: none;
+}
+
+/* .btn-heart .icon-heart::before {
+    content: "\f004";
+    transform: rotateY(360deg);
+    transition: all 0.6s;
+} */
+
+.favourite {
+color: red;
+  /* We Can add scale up - down animation later */
+}
+
