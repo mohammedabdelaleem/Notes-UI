@@ -16,9 +16,15 @@ export const calculateTotalPages = async () => {
   return totalPages;
 };
 
-
 export async function loadPage( currentPageNum) {
+  pageNumber = currentPageNum
   const notes = await getAllNotes(pageSize, currentPageNum);
+
+  // console.log("-------------------------------")
+  // console.log(`currentPageNum : ${currentPageNum}`)
+  // console.log(`pageNumber : ${pageNumber}`)
+  // console.log("-------------------------------")
+
   displayAllNotes(notes);
   highlightCurrentPage();
 }
@@ -30,6 +36,7 @@ export function renderPaginationButtons(total) {
     buttonsHTML += `<button class="num" data-page="${i}">${i}</button>`;
   }
   numbersContainer.innerHTML = buttonsHTML;
+
 }
 
 export function highlightCurrentPage() {

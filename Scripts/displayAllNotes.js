@@ -85,7 +85,6 @@ notesContainer.addEventListener("click", async (eo) => {
   if (deleteBtn) {
     eo.preventDefault();
     const noteId = deleteBtn.dataset.id;
-    let decrease = false;
 
     if (!noteId) return;
 
@@ -100,14 +99,10 @@ notesContainer.addEventListener("click", async (eo) => {
 
       // Adjust current page if it exceeds new total pages
       if (pageNumber > totalPages) {
-        //  pageNumber = totalPages;
-        const currentPage = pageNumber - 1;
-        await loadPage(currentPage);
-        
-        // console.log(`currentPage; ${currentPage}`)
-        // console.log(`totalPages; ${totalPages}`)
-
+        await loadPage(1);
         renderPaginationButtons(totalPages);
+
+
         highlightCurrentPage();
       } else {
         await loadPage(pageNumber);
