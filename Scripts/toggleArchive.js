@@ -1,19 +1,24 @@
-
 import { BASE_URL } from './SharedData.js';
 
 
-// Toggle favorite status
-export const toggleFavorite = async (noteId, isFavorite) => {
+
+export // Toggle archive status
+const toggleArchive = async (noteId, isArchived) => {
   const patchData = [
     {
       op: "replace",
-      path: "/IsFavourite",
-      value: isFavorite
-    }
+      path: "/IsArchieved", // Ensure this matches C# property
+      value: isArchived
+    },
+  {
+    op: "replace",
+    path: "/IsVisible",
+    value: !isArchived
+  }
   ];
 
   try {
-    const response = await fetch(`${BASE_URL}/${noteId}`, {
+    const response = await fetch(`${BASE_URL}/${noteId}/archive`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json-patch+json"
@@ -27,10 +32,10 @@ export const toggleFavorite = async (noteId, isFavorite) => {
     }
 
     const result = await response.json();
-    console.log("Favorite updated:", result);
+    console.log("Archive updated:", result);
     return true;
   } catch (error) {
-    console.error("Error toggling favorite:", error.message);
+    console.error("Error toggling archive:", error.message);
     return false;
   }
 };

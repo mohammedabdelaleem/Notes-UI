@@ -25,6 +25,18 @@ body {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
   background-color: #2d2d2d;
   color: #fff;
+  display: flex;
+}
+
+.sidebar {
+  width: 13%;
+  height: 100vh;
+  padding: 40px 10px 0 20px;
+
+}
+
+main { 
+  width: 87%;
 }
 
 /*
@@ -109,11 +121,12 @@ body {
   background-color: rgb(27, 176, 27);
   color: #fff;
   text-decoration: none;
+  display: inline-block;
 
   letter-spacing: 0.9;
-  position: fixed;
+  /* position: fixed;
   top: 30px;
-  left: 15px;
+  left: 15px; */
 
   transition: all 0.2s;
 }
@@ -182,4 +195,5 @@ body {
 color: red;
   /* We Can add scale up - down animation later */
 }
+
 

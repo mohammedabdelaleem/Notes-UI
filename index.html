@@ -5,15 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Notes</title>
     <link rel="stylesheet" href="Style/style.css" />
+    <link rel="stylesheet" href="Style/slider.css" />
+
     <link rel="stylesheet" href="style.css" />
 
     <link rel="shortcut icon" href="/imgs/note-icon.png" type="image/x-icon" />
     <script type="module" src="Scripts/main.js"></script>
   </head>
   <body>
-    <a class="add" href="./Pages/add.html">Add New</a>
 
-        <div class="notes" >
-        </div>
+    <section class="sidebar">
+    <a class="add" href="./Pages/add.html" style="margin-top: 20px;">Add New</a>
+    <a class="add" href="./Pages/favouritesNotes.html" style="margin-top: 20px;">Favourites</a>
+    <a class="add" href="./Pages/archivedNotes.html" style="margin-top: 20px;">Archived Notes</a>
+    </section>
+
+      <main>
+          <section class="notes" >
+        
+        
+        
+          </section>
+        
+          
+
+
+
+           <section>
+        
+          <div class="slide-numbers">
+            <button  id="prev" class="active-num prev">&lt; prev</button>
+        
+            <div class="numbers">
+              <button class="active-num num" >1</button>
+              <button class="num">2</button>
+              <button class="num">3</button>
+              <button class="num">4</button>
+              <button class="num"> 5</button>
+            </div>
+        
+            <button id="next" class="active-num next">next &gt;</button>
+          </div>
+        </section>
+      </main>
+ 
   </body>
 </html>
