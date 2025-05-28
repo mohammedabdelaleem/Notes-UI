@@ -35,16 +35,16 @@ const addNewObj = async (newObj) => {
     }
 
     const data = await response.json();
-    alert("Object created successfully!");
 
-    // Clear inputs
+    alert(`Object created successfully!:${data._response}`);
+
     titleInput.value = "";
     descriptionInput.value = "";
 
     // Redirect after short delay for UX
     setTimeout(() => {
       window.location.href = "../index.html";
-    }, 500);
+    }, 300);
 
   } catch (error) {
     console.error("Error creating object:", error);
@@ -57,7 +57,8 @@ const addNewObj = async (newObj) => {
   Event Listener
 ===================================
 */
-btnCreate.addEventListener("click", () => {
+btnCreate.addEventListener("click", (eo) => {
+  eo.preventDefault(); // Prevent form submission
   const title = titleInput.value.trim();
   const description = descriptionInput.value.trim();
 
