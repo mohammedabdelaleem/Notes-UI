@@ -1,4 +1,6 @@
-export let BASE_URL = "https://localhost:7002/api/Note";
+// export let BASE_URL = "https://localhost:7002/api/Note";
+export let BASE_URL = "https://my-notes.runasp.net/api/Note";
+
 
 export async function getNote(id) {
   try {
