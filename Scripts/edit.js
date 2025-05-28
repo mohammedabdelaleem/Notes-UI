@@ -21,6 +21,7 @@ if (!titleInput || !descriptionInput || !btnSave) {
 ===================================
 */
 let NOTE_ID = "";
+let note = ""
 
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
@@ -28,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (NOTE_ID) {
     try {
-      const note = await getNote(NOTE_ID);
+       note = await getNote(NOTE_ID);
       if (note) {
         titleInput.value = note.title;
         descriptionInput.value = note.description;
@@ -102,8 +103,11 @@ btnSave.addEventListener("click", async (eo) => {
 
   const noteData = {
     id: NOTE_ID,
-    title,
-    description,
+    title:title,
+    description:description,
+     isVisible: note.isVisible ,
+    isArchieved:note.isArchieved  ,
+    isFavourite :  note.isFavourite
   };
 
   try {

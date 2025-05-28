@@ -36,7 +36,7 @@ const addNewObj = async (newObj) => {
 
     const data = await response.json();
 
-    alert(`Object created successfully!:${data._response}`);
+    console.log(`Object created successfully!:${data._response}`);
 
     titleInput.value = "";
     descriptionInput.value = "";

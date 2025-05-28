@@ -4,52 +4,59 @@ import { countAllNotes } from "./countAllNotes.js";
 
 export let pageSize = 10;
 export let pageNumber = 1;
-let lastSliderPageNumber = 1;
+export let totalPages = 1;
 
 const numbersContainer = document.querySelector(".numbers");
 const sliderContainer = document.querySelector(".slide-numbers");
 
-document.addEventListener("DOMContentLoaded", async () => {
-  const notesCount = await countAllNotes();
-  lastSliderPageNumber = Math.ceil(notesCount / pageSize);
-console.log(lastSliderPageNumber)
-  await loadPage(pageNumber);
-  renderPaginationButtons();
-});
 
-// Load notes for the current page
-async function loadPage(pageNum) {
-  const notes = await getAllNotes(pageSize, pageNum);
+export const calculateTotalPages = async () => {
+  const notesCount = await countAllNotes();
+  totalPages = Math.ceil(notesCount / pageSize);
+  return totalPages;
+};
+
+
+export async function loadPage( currentPageNum) {
+  const notes = await getAllNotes(pageSize, currentPageNum);
   displayAllNotes(notes);
   highlightCurrentPage();
 }
 
-// Render all pagination buttons
-function renderPaginationButtons() {
+
+export function renderPaginationButtons(total) {
   let buttonsHTML = '';
-  for (let i = 2; i <= lastSliderPageNumber; i++) {
+  for (let i = 1; i <= total; i++) {
     buttonsHTML += `<button class="num" data-page="${i}">${i}</button>`;
   }
-  numbersContainer.innerHTML += buttonsHTML;
+  numbersContainer.innerHTML = buttonsHTML;
 }
 
-// Highlight the current active page
-function highlightCurrentPage() {
+export function highlightCurrentPage() {
   const allButtons = numbersContainer.querySelectorAll(".num");
   allButtons.forEach(btn => {
     btn.classList.remove("active");
-    if (parseInt(btn.dataset.page) === pageNumber) {
+    if (parseInt(btn.dataset.page) === parseInt(pageNumber)) {
       btn.classList.add("active");
     }
   });
 }
 
-// Event listener for pagination buttons
+document.addEventListener("DOMContentLoaded", async () => {
+  const total = await calculateTotalPages();
+  await loadPage(pageNumber);
+  renderPaginationButtons(total);
+  highlightCurrentPage();
+});
+
+
 sliderContainer.addEventListener("click", async (e) => {
+  const total = await calculateTotalPages();
+
   if (e.target.classList.contains("prev")) {
-    pageNumber = pageNumber > 1 ? pageNumber - 1 : lastSliderPageNumber;
+    pageNumber = pageNumber > 1 ? pageNumber - 1 : total;
   } else if (e.target.classList.contains("next")) {
-    pageNumber = pageNumber < lastSliderPageNumber ? pageNumber + 1 : 1;
+    pageNumber = pageNumber < total ? pageNumber + 1 : 1;
   } else if (e.target.classList.contains("num")) {
     pageNumber = parseInt(e.target.dataset.page);
   } else {
@@ -57,4 +64,6 @@ sliderContainer.addEventListener("click", async (e) => {
   }
 
   await loadPage(pageNumber);
+  renderPaginationButtons(total);
+  highlightCurrentPage();
 });

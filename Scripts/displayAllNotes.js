@@ -1,8 +1,15 @@
+
+
 import { deleteNote } from "./deleteNote.js";
 import { toggleArchive } from "./toggleArchive.js";
 import { toggleFavorite } from "./toggleFavourite.js";
-import { getAllNotes } from "./getAllNotes.js";
-import {pageNumber, pageSize} from './main.js'
+import { pageNumber, pageSize, calculateTotalPages } from "./main.js";
+import {
+  loadPage,
+  renderPaginationButtons,
+  highlightCurrentPage,
+} from "./main.js";
+import { countCurrentNotes, countAllNotes } from "./countAllNotes.js";
 
 const notesContainer = document.querySelector(".notes");
 
@@ -13,10 +20,10 @@ const extractNoteInfo = (note) => ({
   description: note.description,
   isArchieved: note.isArchieved,
   isFavourite: note.isFavourite,
-  isVisible: note.isVisible
+  isVisible: note.isVisible,
 });
 
-// Create HTML structure for a single note
+
 const createNoteHTML = (id, title, description, counter, favHeart) => `
   <div class="note" data-id="${id}">
     <div class="note-header">
@@ -32,7 +39,7 @@ const createNoteHTML = (id, title, description, counter, favHeart) => `
     <p class="description">${description}</p>
     <div class="actions">
       <a href="./Pages/edit.html?id=${id}" class="btn edit"><i class="icon-pencil"></i></a>
-      <button class="btn btn-archive" data-archive=0 data-id="${id}"><i class="icon-box-remove"></i></button>
+      <button class="btn btn-archive" data-archive="0" data-id="${id}"><i class="icon-box-remove"></i></button>
       <button class="btn btn-heart" data-id="${id}">
         ${favHeart}
       </button>
@@ -42,68 +49,82 @@ const createNoteHTML = (id, title, description, counter, favHeart) => `
 `;
 
 
-// Display all notes in the container
-export const displayAllNotes = (notes) => {
+export const displayAllNotes = async (notes) => {
   if (!Array.isArray(notes) || notes.length === 0) {
     notesContainer.innerHTML = "<p>No notes available.</p>";
     return;
   }
 
-  let allNotesHTML = '';
-  let counter = ((pageNumber-1)*pageSize)+1;
-   //1 ==>  (1-1 *10)+1 =  +1
-   //1 ==>  (2-1 *10)+1 =  11
-
+  let allNotesHTML = "";
+  let counter = (pageNumber - 1) * pageSize + 1;
 
   for (const note of notes) {
-    const { id, title, description, isVisible, isFavourite, isArchieved } = extractNoteInfo(note);
-    let favHeart = "";
+    const { id, title, description, isVisible, isFavourite } =
+      extractNoteInfo(note);
+    const favHeart = isFavourite
+      ? `<i class="icon-heart-o empty-heart none"></i><i class="icon-heart full-heart favourite"></i>`
+      : `<i class="icon-heart-o empty-heart"></i><i class="icon-heart full-heart none favourite"></i>`;
 
-    if (isVisible && !isArchieved) {
-      favHeart = isFavourite
-        ? `<i class="icon-heart-o empty-heart none"></i><i class="icon-heart full-heart favourite"></i>`
-        : `<i class="icon-heart-o empty-heart"></i><i class="icon-heart full-heart none favourite"></i>`;
-
-      allNotesHTML += createNoteHTML(id, title, description, counter++, favHeart);
-    }
+    allNotesHTML += createNoteHTML(id, title, description, counter++, favHeart);
   }
 
   notesContainer.innerHTML = allNotesHTML;
+  highlightCurrentPage(); // Ensure active page button is highlighted
 };
 
 
-// Handle all user actions (event delegation)
 notesContainer.addEventListener("click", async (eo) => {
   const deleteBtn = eo.target.closest(".delete");
   const heartBtn = eo.target.closest(".btn-heart");
   const archiveBtn = eo.target.closest(".btn-archive");
 
-  // Handle Delete
+  const AllNotesLength = await countAllNotes();
+  const notesLengthAtTheLastPage = countCurrentNotes(AllNotesLength, pageSize);
+
+
   if (deleteBtn) {
     eo.preventDefault();
     const noteId = deleteBtn.dataset.id;
+    let decrease = false;
+
     if (!noteId) return;
 
     const confirmed = confirm("Are you sure you want to delete this note?");
     if (!confirmed) return;
 
     const success = await deleteNote(noteId);
+
     if (success) {
-      const updatedNotes = await getAllNotes();
-      displayAllNotes(updatedNotes);
+
+      const totalPages = await calculateTotalPages();
+
+      // Adjust current page if it exceeds new total pages
+      if (pageNumber > totalPages) {
+        //  pageNumber = totalPages;
+        const currentPage = pageNumber - 1;
+        await loadPage(currentPage);
+        
+        // console.log(`currentPage; ${currentPage}`)
+        // console.log(`totalPages; ${totalPages}`)
+
+        renderPaginationButtons(totalPages);
+        highlightCurrentPage();
+      } else {
+        await loadPage(pageNumber);
+        renderPaginationButtons(totalPages);
+        highlightCurrentPage();
+      }
     }
   }
 
-  // Handle Favorite Toggle
-  if (heartBtn) {
+
+  else if (heartBtn) {
     eo.preventDefault();
     const noteId = heartBtn.dataset.id;
     const emptyHeart = heartBtn.querySelector(".empty-heart");
     const fullHeart = heartBtn.querySelector(".full-heart");
-
     const isNowFavourite = emptyHeart.classList.contains("none");
 
-    // Toggle icons visually
     emptyHeart.classList.toggle("none");
     fullHeart.classList.toggle("none");
 
@@ -111,24 +132,17 @@ notesContainer.addEventListener("click", async (eo) => {
   }
 
 
-
-  // Handle Archive Toggle
-  if (archiveBtn) {
+  else if (archiveBtn) {
     eo.preventDefault();
     const noteId = archiveBtn.dataset.id;
+    const archive = archiveBtn.dataset.archive;
+    const isArchieved = archive === "0";
 
-    // after clicking 
-   let isArchieved = false // now 
-    const archive = archiveBtn.dataset.archive
-
-    console.log(`${archive} before`)
-    isArchieved = (archive ==0 )? true : false;
-    console.log(`${isArchieved} after`)
-  
     const success = await toggleArchive(noteId, isArchieved);
     if (success) {
-      const updatedNotes = await getAllNotes();
-      displayAllNotes(updatedNotes);
+      await loadPage(pageNumber);
+      renderPaginationButtons(totalPages);
+      highlightCurrentPage(); 
     }
   }
 });
